@@ -1,0 +1,73 @@
+version: '3'
+services:
+  db:
+    image: 'mysql:5.7'
+    volumes:
+      - '$PWD/mysql:/var/lib/mysql'
+    restart: 'always'
+    expose:
+      - '3306'
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'pass'
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'pass'
+  consul:
+    image: qnib/consul
+    container_name: consul
+    ports:
+     - "8500:8500"
+    environment:
+     - DC_NAME=qnib
+     - RUN_SERVER=true
+     - BOOTSTRAP_CONSUL=true
+    dns: 127.0.0.1
+    privileged: true
+
+  zkui:
+    hostname: zkui
+    container_name: zkui
+    dns: 127.0.0.1
+    dns_search:
+     - node.consul
+     - service.consul
+    image: qnib/zkui
+    environment:
+     - DC_NAME=qnib
+     # If this variable is set, the ZK servers are set directly, otherwise
+     # consul will figure it out
+     #- ZKUI_ZK_SERVER=zookeeper:2181
+    links:
+     - zookeeper:zookeeper
+    links:
+     - consul:consul
+    ports:
+     - 9090:9090
+    privileged: true
+
+  zookeeper:
+    hostname: zookeeper
+    container_name: zookeeper
+    dns: 127.0.0.1
+    dns_search:
+     - node.consul
+     - service.consul
+    image: qnib/zookeeper
+    environment:
+     - DC_NAME=qnib
+    links:
+     - consul:consul
+    privileged: true
+  web:
+    build: .
+    #    command: bash -c "foreman start -f Procfile.dev-server"
+    volumes:
+      - '.:/app'
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgres://postgres@db
+    depends_on:
+      - db
