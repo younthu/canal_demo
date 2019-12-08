@@ -1,73 +1,82 @@
 version: '3'
 services:
   db:
-    image: 'mysql:5.7'
+    image: 'mysql:5.7.28'
     volumes:
-      - '$PWD/mysql:/var/lib/mysql'
+      - '$PWD/docker/mysql/my.cnf:/etc/my.cnf'
+      - '$PWD/docker/mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d'
+      - '$PWD/data/mysql:/var/lib/mysql'
     restart: 'always'
-    expose:
-      - '3306'
     ports:
       - '3306:3306'
     environment:
       MYSQL_ROOT_PASSWORD: 'pass'
       MYSQL_DATABASE: 'db'
-      MYSQL_USER: 'user'
-      MYSQL_PASSWORD: 'pass'
-  consul:
-    image: qnib/consul
-    container_name: consul
-    ports:
-     - "8500:8500"
+      # MYSQL_USER: 'canal'
+      # MYSQL_PASSWORD: 'canal'
+  canal:
+    image: 'canal/canal-server'
     environment:
-     - DC_NAME=qnib
-     - RUN_SERVER=true
-     - BOOTSTRAP_CONSUL=true
-    dns: 127.0.0.1
-    privileged: true
-
-  zkui:
-    hostname: zkui
-    container_name: zkui
-    dns: 127.0.0.1
-    dns_search:
-     - node.consul
-     - service.consul
-    image: qnib/zkui
-    environment:
-     - DC_NAME=qnib
-     # If this variable is set, the ZK servers are set directly, otherwise
-     # consul will figure it out
-     #- ZKUI_ZK_SERVER=zookeeper:2181
-    links:
-     - zookeeper:zookeeper
-    links:
-     - consul:consul
-    ports:
-     - 9090:9090
-    privileged: true
-
-  zookeeper:
-    hostname: zookeeper
-    container_name: zookeeper
-    dns: 127.0.0.1
-    dns_search:
-     - node.consul
-     - service.consul
-    image: qnib/zookeeper
-    environment:
-     - DC_NAME=qnib
-    links:
-     - consul:consul
-    privileged: true
-  web:
-    build: .
-    #    command: bash -c "foreman start -f Procfile.dev-server"
-    volumes:
-      - '.:/app'
-    ports:
-      - '3000:3000'
-    environment:
-      DATABASE_URL: postgres://postgres@db
+      - canal.auto.scan=false
+      - canal.destinations=test
+      - canal.instance.master.address=db:3306
+      - canal.instance.dbUsername=canal
+      - canal.instance.dbPassword=canal
+      - canal.instance.connectionCharset=UTF-8
+      - canal.instance.tsdb.enable=true
+      - canal.instance.gtidon=false
+      - HOSTNAME=192.168.0.101
     depends_on:
       - db
+  zoo1:
+    image: zookeeper
+    restart: always
+    hostname: zoo1
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
+  zoo2:
+    image: zookeeper
+    restart: always
+    hostname: zoo2
+    ports:
+      - 2182:2181
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=0.0.0.0:2888:3888;2181 server.3=zoo3:2888:3888;2181
+    depends_on:
+      - zoo1
+  zoo3:
+    image: zookeeper
+    restart: always
+    hostname: zoo3
+    ports:
+      - 2183:2181
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=0.0.0.0:2888:3888;2181
+    depends_on:
+      - zoo1
+  zkui:
+    image: 'tobilg/zookeeper-webui'
+    ports:
+      - 8080:8080
+    environment:
+      - ZK_DEFAULT_NODE=zoo1:2181/
+      - USER=admin
+      - PASSWORD=pass
+    depends_on:
+      - zoo1
+  # web:
+  #   build: .
+  #   #    command: bash -c "foreman start -f Procfile.dev-server"
+  #   volumes:
+  #     - '.:/app'
+  #   ports:
+  #     - '3000:3000'
+  #   environment:
+  #     DATABASE_URL: postgres://postgres@db
+  #   depends_on:
+  #     - db
