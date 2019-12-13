@@ -18,16 +18,40 @@ services:
     image: 'canal/canal-server'
     environment:
       - canal.auto.scan=false
-      - canal.destinations=test
+      - canal.destinations=example
       - canal.instance.master.address=db:3306
       - canal.instance.dbUsername=canal
       - canal.instance.dbPassword=canal
       - canal.instance.connectionCharset=UTF-8
       - canal.instance.tsdb.enable=true
       - canal.instance.gtidon=false
-      - HOSTNAME=192.168.0.101
+      # mq configuration
+      - canal.mq.topic=example
+      - canal.mq.partition=0
+      - canal.serverMode=kafka
+      - canal.mq.servers=kafka:9092
+      - canal.mq.flatMessage=true
+      # canal admin
+      # - canal.admin.manager='canal_admin:8089'
+      # - canal.admin.port=11110
+      # - canal.admin.user=admin
+      # - canal.admin.passwd=4ACFE3202A5FF5CF467898FC58AAB1D615029441
+      - HOSTNAME=172.20.10.10
+    volumes:
+      - '$PWD/docker/canal/canal.properties:/home/admin/canal-server/conf/canal.properties'
+      - '$PWD/docker/canal.adapter-1.1.4:/home/admin/canal-adapter-1.1.4'
     depends_on:
       - db
+      - kafka
+  canal_admin:
+    image: 'canal/canal-admin:v1.1.4'
+    environment:
+      - canal.adminUser=admin
+      - canal.adminPasswd=admin
+      - server.port=8089
+      - HOSTNAME=172.20.10.10
+    ports:
+      - 8089:8089
   zoo1:
     image: zookeeper
     restart: always
@@ -36,29 +60,32 @@ services:
       - 2181:2181
     environment:
       ZOO_MY_ID: 1
-      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
-  zoo2:
-    image: zookeeper
-    restart: always
-    hostname: zoo2
-    ports:
-      - 2182:2181
-    environment:
-      ZOO_MY_ID: 2
-      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=0.0.0.0:2888:3888;2181 server.3=zoo3:2888:3888;2181
-    depends_on:
-      - zoo1
-  zoo3:
-    image: zookeeper
-    restart: always
-    hostname: zoo3
-    ports:
-      - 2183:2181
-    environment:
-      ZOO_MY_ID: 3
-      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=0.0.0.0:2888:3888;2181
-    depends_on:
-      - zoo1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181
+      ZOO_4LW_COMMANDS_WHITELIST: '*'
+  # zoo2:
+  #   image: zookeeper
+  #   restart: always
+  #   hostname: zoo2
+  #   ports:
+  #     - 2182:2181
+  #   environment:
+  #     ZOO_MY_ID: 2
+  #     ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=0.0.0.0:2888:3888;2181 server.3=zoo3:2888:3888;2181
+  #     ZOO_4LW_COMMANDS_WHITELIST: '*'
+  #   depends_on:
+  #     - zoo1
+  # zoo3:
+  #   image: zookeeper
+  #   restart: always
+  #   hostname: zoo3
+  #   ports:
+  #     - 2183:2181
+  #   environment:
+  #     ZOO_MY_ID: 3
+  #     ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=0.0.0.0:2888:3888;2181
+  #     ZOO_4LW_COMMANDS_WHITELIST: '*'
+  #   depends_on:
+  #     - zoo1
   zkui:
     image: 'tobilg/zookeeper-webui'
     ports:
@@ -69,14 +96,41 @@ services:
       - PASSWORD=pass
     depends_on:
       - zoo1
-  # web:
-  #   build: .
-  #   #    command: bash -c "foreman start -f Procfile.dev-server"
-  #   volumes:
-  #     - '.:/app'
-  #   ports:
-  #     - '3000:3000'
-  #   environment:
-  #     DATABASE_URL: postgres://postgres@db
-  #   depends_on:
-  #     - db
+  zkui2:
+    image: 'juris/zkui'
+    ports:
+      - 9090:9090
+    environment:
+      - ZK_SERVER=zoo1:2181/
+    depends_on:
+      - zoo1
+  kafka:
+    image: wurstmeister/kafka:latest
+    ports:
+      - "9092:9092"
+    expose:
+     - "9093"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 172.20.10.10
+      KAFKA_CREATE_TOPICS: "test:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181
+      KAFKA_BROKER_ID: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zoo1
+  elkx:
+    image: sebp/elkx
+    ports:
+      - "5601:5601"
+      - "9200:9200"
+      - "5044:5044"
+    environment:
+      # for setting up password in the beginning: $ES_HOME/bin/x-pack/setup-passwords interactive
+      # - ELASTIC_BOOTSTRAP_PASSWORD="changeme"
+      - ELASTICSEARCH_USER=elastic
+      - ELASTICSEARCH_PASSWORD=changeme
+      - LOGSTASH_USER=elastic
+      - LOGSTASH_PASSWORD=changeme
+      - KIBANA_USER=kibana
+      - KIBANA_PASSWORD=changeme
