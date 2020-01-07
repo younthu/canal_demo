@@ -9,7 +9,7 @@ mysql数据更新 -> binlog -> canal -> kafka -> canal-es adapter -> ES.
 
 1. 拉新代码
 2. docker-compose up -d
-3. 
+3. 进入elkx，初始化用户密码: `$ES_HOME/bin/x-pack/setup-passwords interactive`
 
 # 杂记
 ## docker
@@ -43,3 +43,5 @@ docker run -d -it -h 192.168.0.101 -e canal.auto.scan=false -e canal.destination
 
 1. [zookeeper docker集群](https://juejin.im/post/5d1c5e5a518825597909bd73)
 2. [canal 对insert有bug](https://www.jianshu.com/p/93d9018e2fa1)
+3. [MySql主从配置](https://www.jianshu.com/p/b0cf461451fb)
+4. [Canal增量同步mysql数据库到ES](https://juejin.im/post/5d0dfec56fb9a07ed064bb6f)
