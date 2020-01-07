@@ -1,5 +1,17 @@
 # canal_demo
+这是一个针对[canal]的演示，通过docker-compose 搭建一个集群,演示mysql改动增量到es里面的过程。 
 
+数据流动如下: 
+
+mysql数据更新 -> binlog -> canal -> kafka -> canal-es adapter -> ES.
+
+## 快速跑起来
+
+1. 拉新代码
+2. docker-compose up -d
+3. 
+
+# 杂记
 ## docker
 
 
