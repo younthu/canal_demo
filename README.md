@@ -1,5 +1,26 @@
 # canal_demo
-这是一个针对[canal]的演示，通过docker-compose 搭建一个集群,演示mysql改动增量到es里面的过程。 
+这是一个淘宝开源项目canal的演示，用docker-compose搭建一个集群, 包含mysql, canal, canal-admin, zookeeper,kafka, zookeeper ui, elasticsearch.
+
+演示的功能为通过canal对mysql的数据变动增量同步到elasticsearch里面去。
+
+## 运行
+可以通过下面的命令把整个集群运行起来。
+1. `docker-compose up -d`
+1. 然后进入命令行输入命令`mysql -h localhost -u root -p --protocol=tcp` 来进入mysql，密码为: pass
+1. 手动启动es adapter
+1. 查看kafka的topic: kafka/kafka_2.11-2.3.1/bin/kafka-topics.sh --list --zookeeper localhost:2181
+2. 查看kafka的topic消费情况: kafka/kafka_2.11-2.3.1/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic example
+3. elkx首次运行需要创建几个账号和密码
+4. 手动为es创建索引
+5. 查看索引内容
+6. 插入数据到mysql
+7. 查看es索引变化
+8. 修改mysql数据
+9. 查看es索引变化
+10. 删除mysql数据
+11. 查看es索引变化
+12. 
+
 
 数据流动如下: 
 
@@ -42,6 +63,10 @@ docker run -d -it -h 192.168.0.101 -e canal.auto.scan=false -e canal.destination
 # references
 
 1. [zookeeper docker集群](https://juejin.im/post/5d1c5e5a518825597909bd73)
+<<<<<<< 658fc0c4a1cf1213d9e1ecbc7580b9ce8640f617
 2. [canal 对insert有bug](https://www.jianshu.com/p/93d9018e2fa1)
 3. [MySql主从配置](https://www.jianshu.com/p/b0cf461451fb)
 4. [Canal增量同步mysql数据库到ES](https://juejin.im/post/5d0dfec56fb9a07ed064bb6f)
+=======
+2. [canal对insert有bug](https://www.jianshu.com/p/93d9018e2fa1)
+>>>>>>> update readme.md
