@@ -1,5 +1,5 @@
 # canal_demo
-这是一个淘宝开源项目canal的演示，用docker-compose搭建一个集群, 包含mysql, canal, canal-admin, zookeeper,kafka, zookeeper ui, elasticsearch.
+这是一个淘宝开源项目[canal](https://github.com/alibaba/canal)的演示，用docker-compose搭建一个集群, 包含mysql, canal, canal-admin, zookeeper,kafka, zookeeper ui, elasticsearch.
 
 演示的功能为通过canal对mysql的数据变动增量同步到elasticsearch里面去。
 
