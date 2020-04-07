@@ -6,9 +6,19 @@
 实验做完以后没有及时整理笔记，下面的步骤细节上有确实的地方，如果有问题，可以联系我，或者发pr, 我尽量不定期更新教程。
 
 ## 运行
+
+运行前请关闭本地安装的mysql, 或者docker mysql container, 避免3306端口冲突。
+
+如果遇到mysql 初始化的问题，请用`docker volume prune` 先清理一遍数据卷。docker 默认会创建并保留一些数据卷重复使用，这会导致mysql初始化的问题。
+
+警告: `docker volume prune`可能会破坏你现有的一些数据，请勿在生产环境上尝试。
+
 可以通过下面的命令把整个集群运行起来。
 1. `docker-compose up -d`
-1. 然后进入命令行输入命令`mysql -h localhost -u root -p --protocol=tcp` 来进入mysql，密码为: pass
+1. 检查数据库初始化结果。
+    1. 然后进入命令行输入命令`mysql -h localhost -u root -p --protocol=tcp` 来进入mysql，密码为: pass
+    1. 或者通过`docker exec -it canal_demo_db_1 bash`进入container, 然后`mysql -u root -p`，输入密码`pass`进入数据库
+    1. 
 1. 手动启动es adapter
 1. 查看kafka的topic: kafka/kafka_2.11-2.3.1/bin/kafka-topics.sh --list --zookeeper localhost:2181
 2. 查看kafka的topic消费情况: kafka/kafka_2.11-2.3.1/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic example
