@@ -8,7 +8,7 @@ create database `example` default character set utf8 collate utf8_general_ci;
 -- 切换到test数据库
 use test; 
 -- 建表 
-DROP TABLE IF EXISTS 'test';
+DROP TABLE IF EXISTS `test`;
 CREATE TABLE `test` (
   `id` int(11) NOT NULL,
   `name` varchar(200) NOT NULL,

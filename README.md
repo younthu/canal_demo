@@ -15,23 +15,36 @@
 
 可以通过下面的命令把整个集群运行起来。
 1. `docker-compose up -d`
-1. 检查数据库初始化结果。
-    1. 然后进入命令行输入命令`mysql -h localhost -u root -p --protocol=tcp` 来进入mysql，密码为: pass
-    1. 或者通过`docker exec -it canal_demo_db_1 bash`进入container, 然后`mysql -u root -p`，输入密码`pass`进入数据库
+1. 检查数据库初始化情况: 
+    1. 命令行输入命令`mysql -h localhost -u root -p --protocol=tcp` 来进入mysql，密码为: pass
+    2. 或者进入 mysql docker: `docker exec -it canal_demo_db_1 bash`, 输入`mysql -u canal -p`, 密码: canal
+    3. `use test;`
+    4. `select * from user;`
+    5. 如果能看到一条记录，说明数据库初始化成功。
+        ~~~sql
+        mysql> select * from user;
+        +----+------+-----+
+        | id | name | age |
+        +----+------+-----+
+        |  0 | Tom  |  18 |
+        +----+------+-----+
+        1 row in set (0.00 sec)
+        ~~~
+    6. 注意，docker-compose.yml里通过环境变量`MYSQL_USER: 'canal'`创建用户发生在mysql/docker-entrypoint-initdb.d/data.sql之后，会导致用户覆盖。所以不要用这个环境变量来创建用户.
+2. 手动启动es adapter
     1. 
-1. 手动启动es adapter
-1. 查看kafka的topic: kafka/kafka_2.11-2.3.1/bin/kafka-topics.sh --list --zookeeper localhost:2181
-2. 查看kafka的topic消费情况: kafka/kafka_2.11-2.3.1/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic example
-3. elkx首次运行需要创建几个账号和密码
-4. 手动为es创建索引
-5. 查看索引内容
-6. 插入数据到mysql
-7. 查看es索引变化
-8. 修改mysql数据
-9. 查看es索引变化
-10. 删除mysql数据
+3. 查看kafka的topic: kafka/kafka_2.11-2.3.1/bin/kafka-topics.sh --list --zookeeper localhost:2181
+4. 查看kafka的topic消费情况: kafka/kafka_2.11-2.3.1/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic example
+5. elkx首次运行需要创建几个账号和密码
+6. 手动为es创建索引
+7. 查看索引内容
+8. 插入数据到mysql
+9.  查看es索引变化
+10. 修改mysql数据
 11. 查看es索引变化
-12. 
+12. 删除mysql数据
+13. 查看es索引变化
+14. 
 
 
 数据流动如下: 
