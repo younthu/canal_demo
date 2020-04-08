@@ -32,9 +32,16 @@
         ~~~
     6. 注意，docker-compose.yml里通过环境变量`MYSQL_USER: 'canal'`创建用户发生在mysql/docker-entrypoint-initdb.d/data.sql之后，会导致用户覆盖。所以不要用这个环境变量来创建用户.
 2. 手动启动es adapter
-    1. 
-3. 查看kafka的topic: kafka/kafka_2.11-2.3.1/bin/kafka-topics.sh --list --zookeeper localhost:2181
-4. 查看kafka的topic消费情况: kafka/kafka_2.11-2.3.1/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic example
+    1. 进入docker: `docker exec -it canal_demo_canal_1 bash`
+    2. 停止adapter: `cd canal-adapter-1.1.4 && bin/stop.sh`
+    3. 启动adapter: `bin/start.sh`
+3. 在host查看kafka的topic: `kafka/kafka_2.11-2.3.1/bin/kafka-topics.sh --list --zookeeper localhost:2181`
+   ~~~sh
+    kafka/kafka_2.11-2.3.1/bin/kafka-topics.sh --list --zookeeper localhost:2181
+    # example
+    # test
+   ~~~
+4. 查看kafka的topic消费情况: `kafka/kafka_2.11-2.3.1/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic example`
 5. elkx首次运行需要创建几个账号和密码
 6. 手动为es创建索引
 7. 查看索引内容
