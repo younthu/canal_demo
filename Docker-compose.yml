@@ -134,3 +134,4 @@ services:
       - LOGSTASH_PASSWORD=changeme
       - KIBANA_USER=kibana
       - KIBANA_PASSWORD=changeme
+      - DEVELOPMENT_MODE=1
